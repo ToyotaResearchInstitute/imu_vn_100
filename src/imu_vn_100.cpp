@@ -431,7 +431,7 @@ void ImuVn100::Stream(bool async) {
         grp1 |= BG1_YPR;
         sgrp1.push_back("BG1_YPR");
       }
-      uint16_tg crrp3 = BG3_NONE;
+      uint16_t grp3 = BG3_NONE;
       std::list<std::string> sgrp3;
       uint16_t grp5 = BG5_YPR_U;
       std::list<std::string> sgrp5 = {"BG5_YPR_U"};
@@ -644,11 +644,17 @@ void ImuVn100::PublishData(const VnDeviceCompositeData& data) {
         RosVector3FromVnVector3(imu_msg->linear_acceleration,
                                 data.angularRateUncompensated);
       }
-      RosQuaternionFromVnQuaternion(imu_msg->orientation, data.quaternion);
 
-      imu_msg->orientation_covariance[0] = data.yprU.c0;
-      imu_msg->orientation_covariance[4] = data.yprU.c1;
-      imu_msg->orientation_covariance[8] = data.yprU.c2;
+      // The device reports orientation in the NED frame, but REP-103 specifies that
+      // it should be in the ENU frame.
+      const VnQuaternion enu_to_ned_quat{std::sqrt(0.5), std::sqrt(0.5), 0., 0.};
+      const VnQuaternion vn_quat_enu = VnQuaternionMultiply(enu_to_ned_quat, data.quaternion);
+      RosQuaternionFromVnQuaternion(imu_msg->orientation, vn_quat_enu);
+
+      // Pitch and roll variances are swapped when going from NED to ENU.
+      imu_msg->orientation_covariance[0] = data.yprU.c1;
+      imu_msg->orientation_covariance[4] = data.yprU.c2;
+      imu_msg->orientation_covariance[8] = data.yprU.c0;
 
       imu_msg->angular_velocity_covariance[0] = angular_velocity_variance_;
       imu_msg->angular_velocity_covariance[4] = angular_velocity_variance_;
@@ -782,18 +788,10 @@ void RosVector3FromVnVector3(geometry_msgs::msg::Vector3& ros_vec3,
 
 void RosQuaternionFromVnQuaternion(geometry_msgs::msg::Quaternion& ros_quat,
                                    const VnQuaternion& vn_quat) {
-  // The device reports quaternions in the NED frame,
-  // but REP-103 specifies that it should be in the
-  // ENU frame.
-  const VnQuaternion ned_enu_quat{std::sqrt(2.), -std::sqrt(2.), 0., 0.};
-  ros_quat.w = (ned_enu_quat.w * vn_quat.w - ned_enu_quat.x * vn_quat.x -
-                ned_enu_quat.y * vn_quat.y - ned_enu_quat.z * vn_quat.z);
-  ros_quat.x = (ned_enu_quat.w * vn_quat.x + ned_enu_quat.x * vn_quat.w +
-                ned_enu_quat.y * vn_quat.z - ned_enu_quat.z * vn_quat.y);
-  ros_quat.y = (ned_enu_quat.w * vn_quat.y - ned_enu_quat.x * vn_quat.z +
-                ned_enu_quat.y * vn_quat.w + ned_enu_quat.z * vn_quat.x);
-  ros_quat.z = (ned_enu_quat.w * vn_quat.z + ned_enu_quat.x * vn_quat.y -
-                ned_enu_quat.y * vn_quat.x + ned_enu_quat.z * vn_quat.w);
+  ros_quat.w = vn_quat.w;
+  ros_quat.x = vn_quat.x;
+  ros_quat.y = vn_quat.y;
+  ros_quat.z = vn_quat.z;
 }
 
 }  //  namespace imu_vn_100

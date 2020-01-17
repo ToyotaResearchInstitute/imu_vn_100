@@ -49,4 +49,13 @@ typedef struct {
 	double w;		/**< W */
 } VnQuaternion;
 
+inline VnQuaternion VnQuaternionMultiply(VnQuaternion a, VnQuaternion b) {
+  VnQuaternion c;
+  c.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+  c.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
+  c.y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x;
+  c.z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w;
+  return c;
+}
+
 #endif /* _VN_KINEMATICS_H */
