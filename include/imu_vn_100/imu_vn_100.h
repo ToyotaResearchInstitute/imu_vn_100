@@ -89,9 +89,9 @@ class ImuVn100 final : public rclcpp::Node {
   double imu_rate_double_;
   std::string frame_id_;
 
-  double linear_acceleration_covariance_;
-  double angular_velocity_covariance_;
-  double magnetic_field_covariance_;
+  double linear_acceleration_variance_;
+  double angular_velocity_variance_;
+  double magnetic_field_variance_;
 
   bool enable_mag_;
   bool enable_pres_;
