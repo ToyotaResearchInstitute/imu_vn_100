@@ -440,7 +440,7 @@ void ImuVn100::Stream(bool async) {
       std::list<std::string> sgrp5 = {"BG5_YPR_U"};
       if (imu_compensated_) {
         grp1 |=  BG1_ACCEL | BG1_ANGULAR_RATE;
-        sgrp1.push_back("BGBG11_ACCEL");
+        sgrp1.push_back("BG11_ACCEL");
         sgrp1.push_back("BG1_ANGULAR_RATE");
         if (enable_mag_) {
           grp3 |= BG3_MAG;
