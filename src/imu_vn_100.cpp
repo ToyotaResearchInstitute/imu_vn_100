@@ -44,6 +44,9 @@ void RosVector3FromVnVector3(geometry_msgs::msg::Vector3& ros_vec3,
 void RosQuaternionFromVnQuaternion(geometry_msgs::msg::Quaternion& ros_quat,
                                    const VnQuaternion& vn_quat);
 
+// Basic multiplication operation for VnQuaternion datatypes.
+VnQuaternion VnQuaternionMultiply(VnQuaternion a, VnQuaternion b);
+
 void AsyncListener(void* sender, VnDeviceCompositeData* data) {
   (void)sender;
   imu_vn_100_ptr->PublishData(*data);
@@ -792,6 +795,15 @@ void RosQuaternionFromVnQuaternion(geometry_msgs::msg::Quaternion& ros_quat,
   ros_quat.x = vn_quat.x;
   ros_quat.y = vn_quat.y;
   ros_quat.z = vn_quat.z;
+}
+
+VnQuaternion VnQuaternionMultiply(VnQuaternion a, VnQuaternion b) {
+  VnQuaternion c;
+  c.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+  c.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
+  c.y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x;
+  c.z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w;
+  return c;
 }
 
 }  //  namespace imu_vn_100
