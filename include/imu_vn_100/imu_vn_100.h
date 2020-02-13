@@ -88,6 +88,11 @@ class ImuVn100 final : public rclcpp::Node {
   int imu_rate_;
   double imu_rate_double_;
   std::string frame_id_;
+  enum class AxesConvention {
+    NED,
+    ENU,
+  };
+  AxesConvention axes_convention_;
 
   double linear_acceleration_variance_;
   double angular_velocity_variance_;
